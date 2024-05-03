@@ -6,61 +6,67 @@ package fitxers;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.List;
 
 /**
  *
- * @author alto6500
+ * @author mabardaji logo.pok
  */
 public class Caratula {
-    /*atributs necessaris èr llegir un fitxer
-      constructor necessari
-      el archivo sera logo.pok*/
+    File ruta_archivo; //objecte file necessari
+    FileReader reader; //
+    BufferedReader fichero;
+    
+    //els 2 constructors  (un sense el boolean i el altre amb el boolean
+    public Caratula() throws FileNotFoundException
+    {
+        ruta_archivo = new File("ficheros/logo.pok");
+        reader = new FileReader(ruta_archivo);
+        fichero = new BufferedReader(reader);
+    }
+    
+    /**
+     * 
+     * @return linbea llegida o null si es final fitxer
+     */
+    public String leerLinea() throws IOException
+    {
+        return fichero.readLine();
+    }
+    //tancar el fitxer
+    public void cerrarFicheros() throws IOException
+    {
+        reader.close();
+        fichero.close();
+    }
     
     
-    /*recuperar datos
+
     
-    */
-    
-        // Ruta al archivo que deseas leer
-        String ruta = "fitxers/logo.pok";
-
-        // Llamar al método para recuperar los datos del archivo
-        ArrayList<String> lines = recuperarDatos(ruta);
-
-        // Llamar al método para mostrar el contenido del ArrayList
-    
-
-    // Método para recuperar los datos del archivo y almacenarlos en un ArrayList
-    public static ArrayList<String> recuperarDatos(String filePath) {
-        ArrayList<String> lines = new ArrayList<>();
-
-        try {
-            File archivo = new File(filePath);
-            FileReader fichero_lectura = new FileReader(archivo);
-            BufferedReader bufferedReader = new BufferedReader(fichero_lectura);
-
-            String line;
-
-            while ((line = bufferedReader.readLine()) != null) {
-                lines.add(line);
+    /*recuperarDatos*/
+    public List<String> recuperarDatos(/* */) throws IOException
+    {
+        List<String> Contenido = new ArrayList();
+        String linea;
+        
+        do
+        {
+            linea = fichero.readLine();
+            if (linea!=null)
+            {
+                Contenido.add(linea);
             }
-            bufferedReader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return lines;
+        }while(linea!=null);
+        this.cerrarFicheros();
+        //abrir fichero
+        //recuperar linea a linea y guardarlo en un arraylist<String>
+        //retornar el arrayList<String>
+        //no sout!!!
+        return Contenido;
     }
-
-    public static void mostrarContenido(ArrayList<String> lines) {
-        // Mostrar cada línea del ArrayList por pantalla
-        for (String line : lines) {
-            System.out.println(line);
-        }
-    }
+    
 }
