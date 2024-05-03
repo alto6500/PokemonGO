@@ -35,67 +35,32 @@ public class PokemonGo {
     }
 
     /* la ejecucion programa*/
-    private void run() {
-        
+    private void run() 
+    {
         try {
-            boolean exit = false;
+            
             mostrarLogo();
-            
-            MenuDaw menu = new MenuDaw("Manteniment Agenda ");
-            
+
             DBConnect.loadDriver();
-            
-            addAllOptions(menu); 
+             
             //introDadesProva(/* */);
-            int opcio;
             entrenadores = new EntrenadorDAO();
+            boolean user_valid = verificarPassword();
             
-            boolean existe_nuevo = pedirEntrenador();
-            
-            //tractar opcio escollida bucle fins que donis sortir no acabi CASA
-            do
+            if (user_valid)
             {
-                //mostrar el menu i escollir opcio CASA
-                opcio = menu.displayMenu();
-                switch(opcio)
-                {
-                    case 2:
-                        altaEntrenador();
-                        break;
-                    case 3:
-                        borrarEntrenador();
-                        break;
-                    case 4:
-                        consultaEntrenador();
-                        break;
-                    case 5:
-                        listarEntrenadores();
-                        break;
-                    case 6:
-                        cazarPokemon();
-                        break;
-                    case 7:
-                        listarMochila();
-                        break;
-                    case 8:
-                        listarTodosPokemons();
-                        break;
-                    case 1: //Sortir
-                        salir();
-                        exit = true;
-                        break;
-                } 
-            }while(!exit);
-            
-            
+                pokemonGo_ok();
+            }
+            else
+            {
+                System.out.println("No has acertado password ");
+            }
         } catch (SQLException ex) {
             System.out.println("Hay un error SQL " + ex.getMessage());
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(PokemonGo.class.getName()).log(Level.SEVERE, null, ex);
         }
- 
-    
-}
+    }
 
     private void mostrarLogo()  {
         try {
@@ -125,7 +90,7 @@ public class PokemonGo {
             menu.addOption("Dar de alta entrenador");
             menu.addOption("Dar de baja entrenador");
             menu.addOption("Consultar entrenador");
-            menu.addOption("Listar entrenadores");            
+            menu.addOption("Listar entrenadores");
             menu.addOption("Cazar Pokemon");
             menu.addOption("Listar Pokemons Cazados");
             menu.addOption("Listar tipos Pokemon existentes en juego");
@@ -149,7 +114,7 @@ public class PokemonGo {
             String password = sc.nextLine();
             Entrenador nuevo = new Entrenador(nombre, password);
             //llamar al dao existeEntrenador
-            //if.... 
+            //if (entrenadores.existeEntrenador(nombre))
             insertado = entrenadores.altaEntrenador(nuevo);
             if (insertado > 0)
             {
@@ -157,7 +122,7 @@ public class PokemonGo {
             }
             else
             {
-                System.out.println("Error insertando entrenador");
+                System.out.println("Error insertando entrenador puede que exista ya con el nombre " + nombre);
             }
         } catch (SQLException ex) {
             System.out.println("Error SQL insertando entrenador" + ex.getMessage());
@@ -166,15 +131,43 @@ public class PokemonGo {
     }
 
     private void borrarEntrenador() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        sc = new Scanner(System.in);
+            System.out.println("Pon el nombre del entrenador a borrar");
+            String nom = sc.nextLine();
+        try {
+            if (entrenadores.existeEntrenador(nom)){ 
+                entrenadores.esborrarEntrenador(nom);
+                System.out.println("Entrenador borrado correctamente");
+                
+            }else{
+                System.out.println("El nombre no existe");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PokemonGo.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void ConsultaEntrenador() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        sc = new Scanner(System.in);
+            System.out.println("Pon el nombre del entrenador a consultar");
+            String nom = sc.nextLine();
+        try {
+            if (entrenadores.existeEntrenador(nom)){ 
+                Entrenador ent = entrenadores.devolverEntrenador(nom);
+                System.out.println("Entrenador consultado: " + ent);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PokemonGo.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void consultaEntrenador() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try { 
+                List<Entrenador> lista = entrenadores.totsEntrenadors();
+                System.out.println("Entrenadores existentes: " + lista);
+        } catch (SQLException ex) {
+            Logger.getLogger(PokemonGo.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void cazarPokemon() {
@@ -198,18 +191,96 @@ public class PokemonGo {
         }
     }
 
-    private void listarEntrenadores() {
-        try{
+    private void todosEntrenadores() {
+        try {
             List<Entrenador> todos = entrenadores.totsEntrenadors();
+            System.out.println("Todos los entrenadores pokemon... ");
             for (Entrenador trainer : todos) {
                 System.out.println(trainer);
             }
-            System.out.println("Numero de entrenadores: " + todos.size());
-        }catch(SQLException ex){
-            System.out.println("Error al listar " + ex.getMessage());
+            System.out.println("Numero de entrenadores... "+ todos.size());
+            
+            
+        } catch (SQLException ex) {
+            System.out.println("Error sql" + ex.getSQLState() + " - " + ex.getMessage());
+        }
+    }
 
+    private boolean verificarPassword() {
+        try {
+            sc = new Scanner(System.in);
+            System.out.println("Pon usuario");
+            String user = sc.nextLine();
+            System.out.println("Pon password");
+            String password = sc.nextLine();
+            
+            if (!entrenadores.existeEntrenador(user))            
+            {
+                entrenadores.altaEntrenador(new Entrenador(user,password));
+                return true;
+            }
+            else
+            {
+                Entrenador existente = entrenadores.devolverEntrenador(user);
+                if (existente.getPassword().equals(password))
+                {
+                    return true; 
+                }
+                else
+                {
+                    System.out.println("Contraseña incorrecta");
+                    return false;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(PokemonGo.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
         
-        }  
+    }
+
+    private void pokemonGo_ok() {
+                    boolean exit = false;
+            MenuDaw menu = new MenuDaw("**** POKEMON GO  ***");
+            
+            addAllOptions(menu);
+            //tractar opcio escollida bucle fins que donis sortir no acabi CASA
+            do
+            {
+
+                //mostrar el menu i escollir opcio CASA
+                int opcio = menu.displayMenu();
+                switch(opcio)
+                {
+                    case 1: //Sortir
+                        salir();
+                        exit = true;
+                        break;                   
+                    case 2:
+                        altaEntrenador();
+                        break;
+                    case 3:
+                        borrarEntrenador();
+                        break;
+                    case 4:
+                        consultaEntrenador();
+                        break;
+                    case 5:
+                        todosEntrenadores();
+                        break;
+                    case 6:
+                        cazarPokemon();
+                        break;
+                    case 7:
+                        listarMochila();
+                        break;
+                    case 8:
+                        listarTodosPokemons();
+                        break;
+
+                } 
+            }while(!exit);
+            
     }
         
 }

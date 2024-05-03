@@ -5,10 +5,7 @@
 package model;
 
 import BD.DBConnect;
-import java.sql.Connection;
 import java.sql.*;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -37,14 +34,21 @@ public class EntrenadorDAO {
                         + "(name, password) "
                         + " VALUES"
                         + " (?,?)"; //id no informat perque es autoincremental
-            //verificacio
-            System.out.println(query); //s'ha de treure quant funcioni 
+            if (!this.existeEntrenador(trainer.getName()))
+            {
+                System.out.println(query); //s'ha de treure quant funcioni 
             
-            PreparedStatement preparedQuery = conn_principal.prepareStatement(query);
+                PreparedStatement preparedQuery = conn_principal.prepareStatement(query);
             
-            preparedQuery.setString(1, trainer.getName());
-            preparedQuery.setString(2,trainer.getPassword());
-            rows = preparedQuery.executeUpdate();   
+                preparedQuery.setString(1, trainer.getName().toUpperCase());
+                preparedQuery.setString(2,trainer.getPassword());
+                rows = preparedQuery.executeUpdate();
+            }
+            else
+            {
+                rows = 0; //no dado de alta
+            }
+               
         }
         
         return rows;
@@ -59,7 +63,7 @@ public class EntrenadorDAO {
      */
     public boolean existeEntrenador(String name) throws SQLException
     {
-       if (conn_principal!=null)
+        if (conn_principal!=null)
         {
             Statement stmt = conn_principal.createStatement();
             String query = "Select id, name, password"
@@ -95,7 +99,6 @@ public class EntrenadorDAO {
     }
     
     
-    
     /**
      * Borrar entrenador amb el nom
      * Primer el te que recuperar, si existeix
@@ -106,6 +109,7 @@ public class EntrenadorDAO {
      */
     public Entrenador esborrarEntrenador(String name)
     {
+        //TO DO CASA
         return null;
     }
     
@@ -117,20 +121,25 @@ public class EntrenadorDAO {
     public List<Entrenador> totsEntrenadors() throws SQLException
     {
         List<Entrenador> all_trainers = null;
-        if (conn_principal!=null){
-          Statement stmt = conn_principal.createStatement();
-          String query = "Select id, name, password" + " from entrenadors";
-          ResultSet cursor = stmt.executeQuery(query);
-          all_trainers = new ArrayList<>();
-          while (cursor.next()){
-              String nom = cursor.getString("name");
-              String contrasenya = cursor.getString("password");
-              int id = cursor.getInt("id");
-              all_trainers.add(new Entrenador(id, nom,contrasenya));
-          }
-          cursor.close();
-          
-      }
+        if (conn_principal!=null)
+        {
+            Statement stmt = conn_principal.createStatement();
+            String query = "Select id, name, password"
+                    + " from entrenadors";
+            
+            ResultSet cursor = stmt.executeQuery(query);
+            all_trainers = new ArrayList<>();
+            while(cursor.next())
+            {
+                String nom = cursor.getString("name");
+                String contrasenya = cursor.getString("password");
+                int id = cursor.getInt("id");
+//                Entrenador nuevo = new Entrenador(id, nom, contrasenya);
+//                all_trainers.add(nuevo);
+                all_trainers.add(new Entrenador(id, nom, contrasenya));
+            }
+             cursor.close();
+        }
         return all_trainers;
     }
     
@@ -140,26 +149,34 @@ public class EntrenadorDAO {
      * Si no existei retorna null
      * @param name 
      */
-    public Entrenador devolverEntrenador(String name) throws SQLException{
+    public Entrenador devolverEntrenador(String name) throws SQLException
+    {
         if (conn_principal!=null)
         {
             Statement stmt = conn_principal.createStatement();
-            String query = "Select id, password"
+            String query = "Select id, name, password"
                     + " from entrenadors where UPPER(name)"
                     + " = '" + name.toUpperCase() + "'";
-            System.out.println(query);
             ResultSet cursor = stmt.executeQuery(query);
-            if (cursor.next()){
+            if (cursor.next()) //existe //FETCH
+            {
+                String nombre = cursor.getString("name");
                 String contrasenya = cursor.getString("password");
                 int id = cursor.getInt("id");
-                Entrenador trainer = new Entrenador(id, name, contrasenya);
-                return trainer;
-                       }
-            else{
+                Entrenador encontrado = new Entrenador(id, nombre, contrasenya);
+                return encontrado;
+            }
+            else
+            {
+                //return new Entrenador(0,"","");
                 return null;
             }
+            
         }
-        return null;
+        else
+        {
+            return null;
+        }
         
     }
     
